@@ -5,7 +5,7 @@ function _init()
     canon = require('./canon')
     poke(0x5f2d, 1) --mouse support
     globals.currentSnood = 0
-    globals.rotation = 90
+    globals.rotation = 0
 end
 
 function _update60()
