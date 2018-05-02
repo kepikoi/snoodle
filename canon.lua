@@ -1,27 +1,34 @@
 local Canon = {}
+local _initRotation = 0.5
+local _tankCoords = {
+    x = 60,
+    y = 116
+}
 
 function Canon:new(obj)
     obj = obj or {}
-    obj.rotation = 0.372
+    obj.rotation = _initRotation
+    obj.currentMonster = nil
     setmetatable(obj, self)
     self.__index = self
     return obj
 end
 
 function Canon:draw()
-
     -- draw canon circles
+    print(self.rotation, 64, 64, 13)
+
     for i = 2, 4 do
         local s = 18 -- sprite  nr
         local m = 0 -- margin for last circle
         if (i == 4) then
-            s = 19
-            m = 0.2
+            s = 19 -- last canon sprite
+            m = 0.5
         end
-        spr(s, (-4 - m) * i * (cos(self.rotation) - sin(self.rotation)) + 62, (4 +  m) * i * ((sin(self.rotation) + cos(self.rotation))) + 116)
+        spr(s, (5 + m) * i * (sin(self.rotation)) + _tankCoords.x, (5 + m) * i * cos(self.rotation) + _tankCoords.y)
     end
 
-    -- print('globals.rotation ' .. globals.rotation, 10, 10);
+    print(self.currentMonster, _tankCoords.x, _tankCoords.y, 14);
 end
 
 function Canon:update()
@@ -30,10 +37,24 @@ function Canon:update()
         self.rotation = 1 / 128 * stat(32)
     end
 
-    if (btn(0, 0) and self.rotation > 0.14) then self.rotation = self.rotation - 0.005 end
-    if (btn(1, 0) and self.rotation < 0.61) then self.rotation = self.rotation + 0.005 end
+    --update monster position
+    if (self.currentMonster) then
+        self.currentMonster:setCoords(nil, _tankCoords.x, _tankCoords.y) -- align monster to  the midle of the canon tank
+    end
+
+    if (btn(0, 0) and self.rotation > 0.27) then self.rotation = self.rotation - 0.005 end
+    if (btn(1, 0) and self.rotation < 0.73) then self.rotation = self.rotation + 0.005 end
 end
 
+function Canon:mountMonster(this, monster)
+    self.currentMonster = monster
+end
 
+function Canon:fire()
+    if (self.currentMonster) then
+        self.currentMonster:setTrajectory(nil, self.rotation)
+        self.currentMonster = nil
+    end
+end
 
 return Canon

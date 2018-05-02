@@ -5,29 +5,36 @@ globals = {}
 --------------sub-module-C:\Users\autod\OneDrive\Dokumente\pico8\carts\snoodle\canon.lua---------------------
 m42f75baf20d2ed1098fe910e9182122a = function()
     local Canon = {}
+local _initRotation = 0.5
+local _tankCoords = {
+    x = 60,
+    y = 116
+}
 
 function Canon:new(obj)
     obj = obj or {}
-    obj.rotation = 0.372
+    obj.rotation = _initRotation
+    obj.currentMonster = nil
     setmetatable(obj, self)
     self.__index = self
     return obj
 end
 
 function Canon:draw()
-
     -- draw canon circles
+    print(self.rotation, 64, 64, 13)
+
     for i = 2, 4 do
         local s = 18 -- sprite  nr
         local m = 0 -- margin for last circle
         if (i == 4) then
-            s = 19
-            m = 0.2
+            s = 19 -- last canon sprite
+            m = 0.5
         end
-        spr(s, (-4 - m) * i * (cos(self.rotation) - sin(self.rotation)) + 62, (4 +  m) * i * ((sin(self.rotation) + cos(self.rotation))) + 116)
+        spr(s, (5 + m) * i * (sin(self.rotation)) + _tankCoords.x, (5 + m) * i * cos(self.rotation) + _tankCoords.y)
     end
 
-    -- print('globals.rotation ' .. globals.rotation, 10, 10);
+    print(self.currentMonster, _tankCoords.x, _tankCoords.y, 14);
 end
 
 function Canon:update()
@@ -36,11 +43,25 @@ function Canon:update()
         self.rotation = 1 / 128 * stat(32)
     end
 
-    if (btn(0, 0) and self.rotation > 0.14) then self.rotation = self.rotation - 0.005 end
-    if (btn(1, 0) and self.rotation < 0.61) then self.rotation = self.rotation + 0.005 end
+    --update monster position
+    if (self.currentMonster) then
+        self.currentMonster:setCoords(nil, _tankCoords.x, _tankCoords.y) -- align monster to  the midle of the canon tank
+    end
+
+    if (btn(0, 0) and self.rotation > 0.27) then self.rotation = self.rotation - 0.005 end
+    if (btn(1, 0) and self.rotation < 0.73) then self.rotation = self.rotation + 0.005 end
 end
 
+function Canon:mountMonster(this, monster)
+    self.currentMonster = monster
+end
 
+function Canon:fire()
+    if (self.currentMonster) then
+        self.currentMonster:setTrajectory(nil, self.rotation)
+        self.currentMonster = nil
+    end
+end
 
 return Canon
 
@@ -49,11 +70,14 @@ m42f75baf20d2ed1098fe910e9182122a = m42f75baf20d2ed1098fe910e9182122a()
 --------------sub-module-C:\Users\autod\OneDrive\Dokumente\pico8\carts\snoodle\monster.lua---------------------
 mebfe0a8595bbbc9dd2c88f55e7316bd7 = function()
     local Monster = {}
+local _speed = 0.3 --higher is faster
 function Monster:new(obj)
     obj = obj or {}
     obj.sprite = 1 + flr(rnd(7)) * 2
     obj.x = 0
     obj.y = 0
+    obj.distance = 0
+    obj.direction = nil
     setmetatable(obj, self)
     self.__index = self
     return obj
@@ -61,15 +85,33 @@ end
 
 function Monster:draw()
     spr(self.sprite, self.x, self.y)
-    print(self.x..' '..self.y,self.x,self.y,10)
+
+--    if (self.direction) then
+--        print(self.x .. ' ' .. self.y .. " " .. self.direction, self.x - 3, self.y - 6, 10)
+--    end
 end
 
 function Monster:update()
+    if (self.direction) then
+        self.x = self.x + sin(self.direction) * self.distance
+        self.y = self.y + cos(self.direction) * self.distance
+        self.distance = self.distance + _speed
+    end
+
+    if (distance == 100) then
+        remove(globals.monsters, self)
+    end
 end
 
-function Monster:setCoords(this,x,y)
+function Monster:setCoords(this, x, y)
+    --    print("set coords"..x.." "..y,x,y,12)
+    --    flip()
     self.x = x
     self.y = y
+end
+
+function Monster:setTrajectory(this, direction)
+    self.direction = direction
 end
 
 return Monster
@@ -82,13 +124,18 @@ mb0de3a3ccbdbdd0e0742cda2d8b4752d = function()
 local _initPosition = 122 -- vertical lift positon
 local _xCoord = 120 -- horizontal lift position
 local Monster = mebfe0a8595bbbc9dd2c88f55e7316bd7
+local firstMonster = Monster:new()
+add(globals.monsters, firstMonster)
 
-function Lift:new(obj)
+function Lift:new(obj,monsters)
+
+    local firstMonster = Monster:new()
+    add(monsters, firstMonster)
+
     obj = obj or {}
     obj.position = _initPosition
-    obj.isSlidingDown = false
-    obj.isSlidingUp = false
-    obj.currentMonster = nil
+    obj.stage = 0
+    obj.currentMonster = firstMonster
     obj.robot = nil
     setmetatable(obj, self)
     self.__index = self
@@ -97,6 +144,7 @@ end
 
 function Lift:draw()
     spr(21, _xCoord, self.position)
+    print(self.currentMonster, _xCoord - 14, 90, 3)
 end
 
 function Lift:update()
@@ -106,43 +154,47 @@ function Lift:update()
     end
 end
 
-function Lift:addMonster(this, monsters)
-    local currentMonster = Monster:new()
-    add(monsters,self.currentMonster)
-    self.currentMonster = currentMonster
-
-    self.isSlidingDown = true
+function Lift:addMonster()
+    if (self.robot.stage == 0) then
+           self.stage = 1
+    end
 end
 
 function Lift:registerRobot(this, robot)
     self.robot = robot
 end
 
-
 function Lift:animate()
 
-    if (self.isSlidingDown) then
+    if self.stage == 1 then   --descend
         self.robot:grabMonster(nil, self.currentMonster)
-        self.currentMonster = nil
+        self.currentMonster  = nil
 
         if globals.i % 5 then
             self.position = self.position + 1
         end
 
-        if self.position > 136 then
-            self.isSlidingDown = false
-            self.isSlidingUp = true
-            self.currentMonster = Monster:new()
+        if self.position > 136 then -- below surface
+
+            local currentMonster = Monster:new() --assign new monster
+            add(globals.monsters, currentMonster)
+            self.currentMonster = currentMonster
+
+            self.stage = 2
         end
     end
-    if (self.isSlidingUp) then
+
+    if self.stage == 2 then -- lift
+
+
+
+
         if globals.i % 5 then
             self.position = self.position - 1
         end
 
         if self.position <= _initPosition then
-            self.isSlidingDown = false
-            self.isSlidingUp = false
+            self.stage = 0
         end
     end
 end
@@ -156,7 +208,7 @@ meaad72aeae06ceb1154d27f2099820e1 = function()
 local _initPos = 110 -- init  x coord
 local _initDirection = 0 -- init arm position
 local _yCoord = 115 -- robots permament vertical coord
-local _animSpeed = 1
+local _animSpeed = 1 -- higher is slower
 function Robot:new(obj)
     obj = obj or {}
     obj.sprite = 20
@@ -165,51 +217,65 @@ function Robot:new(obj)
     obj.direction = _initDirection
     obj.stage = 0
     obj.currentMonster = nil
+    obj.canon = nil
     setmetatable(obj, self)
     self.__index = self
     return obj
 end
 
-function Robot:draw()
-    local endArmX = 4 * cos(self.direction) + self.x + 3;
-    local endArmY = 4 * sin(self.direction) + self.y + 4;
+--revolve object around robot
+function Robot:revolve(this, distance)
+    return {
+        x = distance * cos(self.direction) + self.x;
+        y = distance * sin(self.direction) + self.y;
+    }
+end
 
-    print(self.x .. ' ' .. _initPos, 33, 11, 11)
+function Robot:registerCanon(this, canon)
+    self.canon = canon
+end
+
+function Robot:draw()
+    local armsDistance = self:revolve(nil, 4)
+    local monsterDistance = self:revolve(nil, 5)
 
     if self.currentMonster then
-        self.currentMonster:draw(nil, endArmX + 2, endArmY + 2)
+        self.currentMonster:setCoords(nil, monsterDistance.x - 2, monsterDistance.y)
     end
 
     spr(self.sprite, self.x, self.y) --body
 
-    line(self.x + 3, self.y + 4, endArmX, endArmY, 11) --arm
-    circ(endArmX , endArmY, 1, 8) -- upper claw
+    line(self.x + 3, self.y + 4, armsDistance.x + 3, armsDistance.y + 4, 11) --arm
+    circ(armsDistance.x+3 , armsDistance.y+4, 1, 8) -- upper claw
 
-    --    print(self.direction, 33, 22, 4)
+    print(self.currentMonster, self.x-5, self.y-6, 4)
 
     if self.stage == 1 then
-        if globals.i % _animSpeed  == 0 then
+        if globals.i % _animSpeed == 0 then
             if self.direction < 0.5 then
-                self.direction = self.direction + 0.05
+                self.direction = self.direction + 0.05 -- run to canon
             else
                 self.stage = 2
-
             end
         end
     end
 
     if self.stage == 2 then
         if globals.i % _animSpeed == 0 then
-            if self.x > 64 then
+            if self.x > 65 then
                 self.x = self.x - 2
             else
-                self.direction = _initDirection
+                self.direction = _initDirection --rotate back to lift
+                self.canon:mountMonster(nil,self.currentMonster)
+                self.currentMonster = nil
+
                 self.stage = 3
             end
         end
     end
 
     if self.stage == 3 then
+
         if globals.i % _animSpeed == 0 then
             if self.x < _initPos then
                 self.x = self.x + 3
@@ -218,12 +284,16 @@ function Robot:draw()
             end
         end
     end
+
+
 end
 
 
 function Robot:grabMonster(this, monster)
-    self.currentMonster = monster
-    self.stage = 1
+    if self.stage == 0 then
+        self.currentMonster = monster
+        self.stage = 1
+    end
 end
 
 function Robot:update()
@@ -241,18 +311,20 @@ Lift = mb0de3a3ccbdbdd0e0742cda2d8b4752d
 Robot = meaad72aeae06ceb1154d27f2099820e1
 
 function _init()
+    --    poke(0x5f2d, 1) --mouse support
+
+    globals.i = 0
+    globals.monsters = {}
+
     canon = Canon:new();
-    lift = Lift:new();
+    lift = Lift:new({},globals.monsters);
     robot = Robot:new();
-    monsters = {}
 
     lift:registerRobot(nil, robot);
+    robot:registerCanon(nil, canon);
 
-    --    poke(0x5f2d, 1) --mouse support
-    globals.i = 0
-
-    -- add first monster
-    lift:addMonster(nil, monsters);
+    -- init first monster
+    lift:addMonster();
 end
 
 function _update60()
@@ -260,6 +332,10 @@ function _update60()
     globals.i = globals.i + 1
 
     listenControls();
+
+    for m in all(globals.monsters) do
+        m:update()
+    end
 
     canon:update()
     lift:update()
@@ -272,19 +348,22 @@ function _draw()
     -- draw bg map
     map(0, 0, 0, 0, 128, 128, 0)
 
+    print(#globals.monsters, 0, 0, 8)
+
     canon:draw()
     lift:draw()
-    robot:draw()
 
-    for m in all(monsters) do
-        m:animate()
+    for m in all(globals.monsters) do
+        m:draw()
     end
+
+    robot:draw()
 end
 
 function listenControls()
-
     if (btn(4, 0)) then
-        lift:addMonster(monsters)
+        canon:fire()
+        lift:addMonster()
     end
 end
 __gfx__

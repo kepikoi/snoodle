@@ -5,18 +5,20 @@ Lift = require('./lift')
 Robot = require('./robot')
 
 function _init()
+    --    poke(0x5f2d, 1) --mouse support
+
+    globals.i = 0
+    globals.monsters = {}
+
     canon = Canon:new();
-    lift = Lift:new();
+    lift = Lift:new({},globals.monsters);
     robot = Robot:new();
-    monsters = {}
 
     lift:registerRobot(nil, robot);
+    robot:registerCanon(nil, canon);
 
-    --    poke(0x5f2d, 1) --mouse support
-    globals.i = 0
-
-    -- add first monster
-    lift:addMonster(nil, monsters);
+    -- init first monster
+    lift:addMonster();
 end
 
 function _update60()
@@ -24,6 +26,10 @@ function _update60()
     globals.i = globals.i + 1
 
     listenControls();
+
+    for m in all(globals.monsters) do
+        m:update()
+    end
 
     canon:update()
     lift:update()
@@ -36,18 +42,21 @@ function _draw()
     -- draw bg map
     map(0, 0, 0, 0, 128, 128, 0)
 
+    print(#globals.monsters, 0, 0, 8)
+
     canon:draw()
     lift:draw()
-    robot:draw()
 
-    for m in all(monsters) do
-        m:animate()
+    for m in all(globals.monsters) do
+        m:draw()
     end
+
+    robot:draw()
 end
 
 function listenControls()
-
     if (btn(4, 0)) then
-        lift:addMonster(monsters)
+        canon:fire()
+        lift:addMonster()
     end
 end
