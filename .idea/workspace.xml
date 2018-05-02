@@ -2,9 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="1d29eebe-09c9-4cd5-9a13-c7551aaf30d2" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/snood.lua" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lift.lua" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/robot.lua" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/canon.lua" beforeDir="false" afterPath="$PROJECT_DIR$/canon.lua" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/snood.lua" beforeDir="false" afterPath="$PROJECT_DIR$/monster.lua" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/snoodle.lua" beforeDir="false" afterPath="$PROJECT_DIR$/snoodle.lua" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/snoodle.p8" beforeDir="false" afterPath="$PROJECT_DIR$/snoodle.p8" afterDir="false" />
     </list>
@@ -44,8 +46,17 @@
       <file leaf-file-name="snoodle.lua" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/snoodle.lua">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="136">
-              <caret line="8" selection-start-line="8" selection-end-line="8" />
+            <state relative-caret-position="323">
+              <caret line="19" column="3" lean-forward="true" selection-start-line="19" selection-start-column="3" selection-end-line="19" selection-end-column="3" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="snoodle.p8" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/snoodle.p8">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="702">
+              <caret line="271" column="18" lean-forward="true" selection-start-line="271" selection-start-column="18" selection-end-line="271" selection-end-column="18" />
             </state>
           </provider>
         </entry>
@@ -62,26 +73,35 @@
       <file leaf-file-name="canon.lua" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/canon.lua">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="442">
-              <caret line="26" column="1" lean-forward="true" selection-start-line="26" selection-start-column="1" selection-end-line="26" selection-end-column="1" />
+            <state relative-caret-position="357">
+              <caret line="21" column="7" lean-forward="true" selection-start-line="21" selection-start-column="7" selection-end-line="21" selection-end-column="7" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="snood.lua" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/snood.lua">
+      <file leaf-file-name="monster.lua" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/monster.lua">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret column="10" selection-start-column="10" selection-end-column="10" />
+            <state relative-caret-position="425">
+              <caret line="25" lean-forward="true" selection-start-line="25" selection-end-line="25" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="snoodle.p8" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/snoodle.p8">
+      <file leaf-file-name="robot.lua" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/robot.lua">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="799">
-              <caret line="47" column="24" selection-start-line="47" selection-start-column="24" selection-end-line="47" selection-end-column="24" />
+            <state relative-caret-position="459">
+              <caret line="51" column="31" selection-start-line="51" selection-start-column="31" selection-end-line="51" selection-end-column="31" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="lift.lua" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/lift.lua">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="833">
+              <caret line="49" column="11" lean-forward="true" selection-start-line="49" selection-start-column="11" selection-end-line="49" selection-end-column="11" />
             </state>
           </provider>
         </entry>
@@ -90,7 +110,9 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
+      <find>animAddMonster</find>
       <find>flrd(</find>
+      <find>meaad72aeae06ceb1154d27f2099820e1</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -100,9 +122,12 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/.gitignore" />
-        <option value="$PROJECT_DIR$/snoodle.lua" />
-        <option value="$PROJECT_DIR$/canon.lua" />
         <option value="$PROJECT_DIR$/snood.lua" />
+        <option value="$PROJECT_DIR$/canon.lua" />
+        <option value="$PROJECT_DIR$/snoodle.lua" />
+        <option value="$PROJECT_DIR$/lift.lua" />
+        <option value="$PROJECT_DIR$/monster.lua" />
+        <option value="$PROJECT_DIR$/robot.lua" />
       </list>
     </option>
   </component>
@@ -120,6 +145,9 @@
     <option name="y" value="-20" />
     <option name="width" value="1696" />
     <option name="height" value="1026" />
+  </component>
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -166,12 +194,12 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1525266874404</updated>
-      <workItem from="1525266875510" duration="4894000" />
+      <workItem from="1525266875510" duration="19547000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="4894000" />
+    <option name="totallyTimeSpent" value="19547000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -184,14 +212,15 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="2576" height="1416" extended-state="6" />
+    <editor active="true" />
     <layout>
       <window_info anchor="bottom" id="TODO" order="6" weight="0.3298969" />
       <window_info anchor="bottom" id="Event Log" side_tool="true" />
       <window_info anchor="bottom" id="Database Changes" show_stripe_button="false" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.3298969" />
+      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.3298969" />
       <window_info anchor="bottom" id="Version Control" weight="0.3298969" />
       <window_info anchor="bottom" id="Terminal" weight="0.3298969" />
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.25" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25" />
       <window_info anchor="bottom" id="Docker" show_stripe_button="false" />
       <window_info anchor="right" id="LuaJ" />
       <window_info anchor="right" id="Database" />
@@ -235,6 +264,11 @@
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
   </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <option name="time" value="1" />
+    </breakpoint-manager>
+  </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/pico-8.txt">
       <provider selected="true" editor-type-id="text-editor">
@@ -243,9 +277,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/PICO-8_CheatSheet_0111Gm_4k.png">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/.gitignore">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="34">
@@ -253,31 +284,48 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/PICO-8_CheatSheet_0111Gm_4k.png">
+      <provider selected="true" editor-type-id="images" />
+    </entry>
     <entry file="file://$PROJECT_DIR$/snoodle.p8">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="799">
-          <caret line="47" column="24" selection-start-line="47" selection-start-column="24" selection-end-line="47" selection-end-column="24" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/snoodle.lua">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="136">
-          <caret line="8" selection-start-line="8" selection-end-line="8" />
+        <state relative-caret-position="702">
+          <caret line="271" column="18" lean-forward="true" selection-start-line="271" selection-start-column="18" selection-end-line="271" selection-end-column="18" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/canon.lua">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="442">
-          <caret line="26" column="1" lean-forward="true" selection-start-line="26" selection-start-column="1" selection-end-line="26" selection-end-column="1" />
+        <state relative-caret-position="357">
+          <caret line="21" column="7" lean-forward="true" selection-start-line="21" selection-start-column="7" selection-end-line="21" selection-end-column="7" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/snood.lua">
+    <entry file="file://$PROJECT_DIR$/snoodle.lua">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret column="10" selection-start-column="10" selection-end-column="10" />
+        <state relative-caret-position="323">
+          <caret line="19" column="3" lean-forward="true" selection-start-line="19" selection-start-column="3" selection-end-line="19" selection-end-column="3" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/monster.lua">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="425">
+          <caret line="25" lean-forward="true" selection-start-line="25" selection-end-line="25" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lift.lua">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="833">
+          <caret line="49" column="11" lean-forward="true" selection-start-line="49" selection-start-column="11" selection-end-line="49" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/robot.lua">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="459">
+          <caret line="51" column="31" selection-start-line="51" selection-start-column="31" selection-end-line="51" selection-end-column="31" />
         </state>
       </provider>
     </entry>
