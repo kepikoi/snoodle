@@ -6,6 +6,8 @@ function Monster:new(obj)
     obj.x = 0
     obj.y = 0
     obj.distance = 0
+    obj.spriteCoolDown = rnd(40)
+    obj.alterSprite = false
     obj.direction = nil
     setmetatable(obj, self)
     self.__index = self
@@ -13,11 +15,15 @@ function Monster:new(obj)
 end
 
 function Monster:draw()
-    spr(self.sprite, self.x, self.y)
-
---    if (self.direction) then
---        print(self.x .. ' ' .. self.y .. " " .. self.direction, self.x - 3, self.y - 6, 10)
---    end
+    self.spriteCoolDown = self.spriteCoolDown - 1
+    if (self.spriteCoolDown < 0) then
+        self.alterSprite = not self.alterSprite
+        self.spriteCoolDown = rnd(40)
+    end
+    spr(self.alterSprite and self.sprite + 1 or self.sprite, self.x, self.y)
+    --    if (self.direction) then
+    --        print(self.x .. ' ' .. self.y .. " " .. self.direction, self.x - 3, self.y - 6, 10)
+    --    end
 end
 
 function Monster:update()

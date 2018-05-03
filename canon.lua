@@ -16,7 +16,7 @@ end
 
 function Canon:draw()
     -- draw canon circles
-    print(self.rotation, 64, 64, 13)
+    --print(self.rotation, 64, 64, 13)
 
     for i = 2, 4 do
         local s = 18 -- sprite  nr
@@ -28,7 +28,7 @@ function Canon:draw()
         spr(s, (5 + m) * i * (sin(self.rotation)) + _tankCoords.x, (5 + m) * i * cos(self.rotation) + _tankCoords.y)
     end
 
-    print(self.currentMonster, _tankCoords.x, _tankCoords.y, 14);
+    --print(self.currentMonster, _tankCoords.x, _tankCoords.y, 14);
 end
 
 function Canon:update()
@@ -44,6 +44,10 @@ function Canon:update()
 
     if (btn(0, 0) and self.rotation > 0.27) then self.rotation = self.rotation - 0.005 end
     if (btn(1, 0) and self.rotation < 0.73) then self.rotation = self.rotation + 0.005 end
+
+    if (btn(4, 0)) then
+        self:fire()
+    end
 end
 
 function Canon:mountMonster(this, monster)

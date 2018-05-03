@@ -2,19 +2,13 @@ local Lift = {}
 local _initPosition = 122 -- vertical lift positon
 local _xCoord = 120 -- horizontal lift position
 local Monster = require('./monster')
-local firstMonster = Monster:new()
-add(globals.monsters, firstMonster)
 
-function Lift:new(obj,monsters)
-
-    local firstMonster = Monster:new()
-    add(monsters, firstMonster)
+function Lift:new(obj, monsters)
 
     obj = obj or {}
     obj.position = _initPosition
     obj.stage = 0
-    obj.currentMonster = firstMonster
-    obj.robot = nil
+    obj.currentMonster = nil
     setmetatable(obj, self)
     self.__index = self
     return obj
@@ -26,27 +20,18 @@ function Lift:draw()
 end
 
 function Lift:update()
-    self:animate()
     if self.currentMonster then
-        self.currentMonster:setCoords(nil, _xCoord - 1, self.position - 8)
+        self.currentMonster:setCoords(nil, _xCoord - 1, self.position - 8) --move monster with lift
+    else
+        self.stage = 1
     end
+
+    self:addMonster() -- add monster when lift is empty
 end
 
 function Lift:addMonster()
-    if (self.robot.stage == 0) then
-           self.stage = 1
-    end
-end
 
-function Lift:registerRobot(this, robot)
-    self.robot = robot
-end
-
-function Lift:animate()
-
-    if self.stage == 1 then   --descend
-        self.robot:grabMonster(nil, self.currentMonster)
-        self.currentMonster  = nil
+    if self.stage == 1 then --descend
 
         if globals.i % 5 then
             self.position = self.position + 1
@@ -64,14 +49,11 @@ function Lift:animate()
 
     if self.stage == 2 then -- lift
 
-
-
-
         if globals.i % 5 then
             self.position = self.position - 1
         end
 
-        if self.position <= _initPosition then
+        if self.position <= _initPosition then --lift is done and ready
             self.stage = 0
         end
     end

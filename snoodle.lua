@@ -14,8 +14,9 @@ function _init()
     lift = Lift:new({},globals.monsters);
     robot = Robot:new();
 
-    lift:registerRobot(nil, robot);
+--    lift:registerRobot(nil, robot);
     robot:registerCanon(nil, canon);
+    robot:registerLift(nil, lift);
 
     -- init first monster
     lift:addMonster();
@@ -24,8 +25,6 @@ end
 function _update60()
     -- iterate i counter
     globals.i = globals.i + 1
-
-    listenControls();
 
     for m in all(globals.monsters) do
         m:update()
@@ -42,7 +41,7 @@ function _draw()
     -- draw bg map
     map(0, 0, 0, 0, 128, 128, 0)
 
-    print(#globals.monsters, 0, 0, 8)
+    --print(#globals.monsters, 0, 0, 8)
 
     canon:draw()
     lift:draw()
@@ -54,9 +53,3 @@ function _draw()
     robot:draw()
 end
 
-function listenControls()
-    if (btn(4, 0)) then
-        canon:fire()
-        lift:addMonster()
-    end
-end
