@@ -3,8 +3,8 @@ local _speed = 0.3 --higher is faster
 function Monster:new(obj)
     obj = obj or {}
     obj.sprite = 1 + flr(rnd(7)) * 2
-    obj.x = 0
-    obj.y = 0
+    obj.x = -64
+    obj.y = -64
     obj.distance = 0
     obj.spriteCoolDown = rnd(40)
     obj.alterSprite = false

@@ -2,12 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="1d29eebe-09c9-4cd5-9a13-c7551aaf30d2" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/canon.lua" beforeDir="false" afterPath="$PROJECT_DIR$/canon.lua" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lift.lua" beforeDir="false" afterPath="$PROJECT_DIR$/lift.lua" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/monster.lua" beforeDir="false" afterPath="$PROJECT_DIR$/monster.lua" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/robot.lua" beforeDir="false" afterPath="$PROJECT_DIR$/robot.lua" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/snoodle.lua" beforeDir="false" afterPath="$PROJECT_DIR$/snoodle.lua" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/snoodle.p8" beforeDir="false" afterPath="$PROJECT_DIR$/snoodle.p8" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -65,20 +61,20 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="monster.lua" pinned="false" current-in-tab="false">
+      <file leaf-file-name="monster.lua" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/monster.lua">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="524">
-              <caret line="41" column="15" selection-start-line="41" selection-start-column="10" selection-end-line="41" selection-end-column="15" />
+            <state relative-caret-position="102">
+              <caret line="6" column="15" lean-forward="true" selection-start-line="6" selection-start-column="15" selection-end-line="6" selection-end-column="15" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="robot.lua" pinned="false" current-in-tab="true">
+      <file leaf-file-name="robot.lua" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/robot.lua">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="425">
-              <caret line="61" column="7" lean-forward="true" selection-start-line="61" selection-start-column="7" selection-end-line="61" selection-end-column="7" />
+            <state relative-caret-position="255">
+              <caret line="50" column="32" lean-forward="true" selection-start-line="50" selection-start-column="32" selection-end-line="50" selection-end-column="32" />
             </state>
           </provider>
         </entry>
@@ -86,8 +82,8 @@
       <file leaf-file-name="lift.lua" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/lift.lua">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="17">
-              <caret line="19" column="3" lean-forward="true" selection-start-line="19" selection-start-column="3" selection-end-line="19" selection-end-column="3" />
+            <state relative-caret-position="272">
+              <caret line="16" column="20" lean-forward="true" selection-start-line="16" selection-start-column="20" selection-end-line="16" selection-end-column="20" />
             </state>
           </provider>
         </entry>
@@ -119,8 +115,8 @@
       <find>rotation</find>
       <find>self.robot</find>
       <find>self.robo</find>
-      <find>animate</find>
       <find>print</find>
+      <find>animate</find>
     </findStrings>
     <dirStrings>
       <dir>C:\Users\autod\OneDrive\Dokumente\pico8\carts\snoodle</dir>
@@ -134,11 +130,11 @@
       <list>
         <option value="$PROJECT_DIR$/.gitignore" />
         <option value="$PROJECT_DIR$/snood.lua" />
-        <option value="$PROJECT_DIR$/monster.lua" />
         <option value="$PROJECT_DIR$/canon.lua" />
         <option value="$PROJECT_DIR$/snoodle.lua" />
-        <option value="$PROJECT_DIR$/lift.lua" />
         <option value="$PROJECT_DIR$/robot.lua" />
+        <option value="$PROJECT_DIR$/lift.lua" />
+        <option value="$PROJECT_DIR$/monster.lua" />
       </list>
     </option>
   </component>
@@ -206,12 +202,12 @@
       <option name="presentableId" value="Default" />
       <updated>1525266874404</updated>
       <workItem from="1525266875510" duration="27559000" />
-      <workItem from="1525338192764" duration="2487000" />
+      <workItem from="1525338192764" duration="2635000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="30046000" />
+    <option name="totallyTimeSpent" value="30194000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -231,8 +227,8 @@
       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Run" order="2" weight="0.3298969" />
       <window_info anchor="bottom" id="Version Control" order="7" weight="0.3298969" />
-      <window_info anchor="bottom" id="Terminal" order="7" weight="0.08495982" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.20904645" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="7" visible="true" weight="0.08495982" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.20904645" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="right" id="LuaJ" order="3" />
       <window_info anchor="right" id="Database" order="3" />
@@ -359,24 +355,24 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/robot.lua">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="50" column="32" lean-forward="true" selection-start-line="50" selection-start-column="32" selection-end-line="50" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/lift.lua">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="17">
-          <caret line="19" column="3" lean-forward="true" selection-start-line="19" selection-start-column="3" selection-end-line="19" selection-end-column="3" />
+        <state relative-caret-position="272">
+          <caret line="16" column="20" lean-forward="true" selection-start-line="16" selection-start-column="20" selection-end-line="16" selection-end-column="20" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/monster.lua">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="524">
-          <caret line="41" column="15" selection-start-line="41" selection-start-column="10" selection-end-line="41" selection-end-column="15" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/robot.lua">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="425">
-          <caret line="61" column="7" lean-forward="true" selection-start-line="61" selection-start-column="7" selection-end-line="61" selection-end-column="7" />
+        <state relative-caret-position="102">
+          <caret line="6" column="15" lean-forward="true" selection-start-line="6" selection-start-column="15" selection-end-line="6" selection-end-column="15" />
         </state>
       </provider>
     </entry>

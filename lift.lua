@@ -16,7 +16,7 @@ end
 
 function Lift:draw()
     spr(21, _xCoord, self.position)
-    print(self.currentMonster, _xCoord - 14, 90, 3)
+--    print(self.currentMonster, _xCoord - 14, 90, 3)
 end
 
 function Lift:update()
