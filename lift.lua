@@ -3,7 +3,7 @@ local _initPosition = 122 -- vertical lift positon
 local _xCoord = 120 -- horizontal lift position
 local Monster = require('./monster')
 
-function Lift:new(obj, monsters)
+function Lift:new(obj)
 
     obj = obj or {}
     obj.position = _initPosition

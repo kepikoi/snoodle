@@ -1,5 +1,5 @@
 local Monster = {}
-local _speed = 0.3 --higher is faster
+local _speed = 0.1 --higher is faster
 function Monster:new(obj)
     obj = obj or {}
     obj.sprite = 1 + flr(rnd(7)) * 2
@@ -15,22 +15,34 @@ function Monster:new(obj)
 end
 
 function Monster:draw()
+    spr(self.alterSprite and self.sprite + 1 or self.sprite, self.x, self.y)
+end
+
+function Monster:animateFace()
     self.spriteCoolDown = self.spriteCoolDown - 1
     if (self.spriteCoolDown < 0) then
         self.alterSprite = not self.alterSprite
         self.spriteCoolDown = rnd(40)
     end
-    spr(self.alterSprite and self.sprite + 1 or self.sprite, self.x, self.y)
-    --    if (self.direction) then
-    --        print(self.x .. ' ' .. self.y .. " " .. self.direction, self.x - 3, self.y - 6, 10)
-    --    end
 end
 
 function Monster:update()
+
+    self:animateFace();
+
+
     if (self.direction) then
         self.x = self.x + sin(self.direction) * self.distance
         self.y = self.y + cos(self.direction) * self.distance
         self.distance = self.distance + _speed
+
+        if (self.y <= 0) then
+            self.distance = 0  --stop flying
+        end
+
+        if (self.x <= 0 or self.x >= 127) then
+            self.direction = 1 - self.direction
+        end
     end
 
     if (distance == 100) then
@@ -39,8 +51,6 @@ function Monster:update()
 end
 
 function Monster:setCoords(this, x, y)
-    --    print("set coords"..x.." "..y,x,y,12)
-    --    flip()
     self.x = x
     self.y = y
 end

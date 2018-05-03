@@ -9,15 +9,16 @@ function Canon:new(obj)
     obj = obj or {}
     obj.rotation = _initRotation
     obj.currentMonster = nil
+    self.a = 1
     setmetatable(obj, self)
     self.__index = self
     return obj
 end
 
 function Canon:draw()
-    -- draw canon circles
-    --print(self.rotation, 64, 64, 13)
+--    print(self.a, 64, 64, 13)
 
+    -- draw canon circles
     for i = 2, 4 do
         local s = 18 -- sprite  nr
         local m = 0 -- margin for last circle
@@ -42,8 +43,18 @@ function Canon:update()
         self.currentMonster:setCoords(nil, _tankCoords.x, _tankCoords.y) -- align monster to  the midle of the canon tank
     end
 
-    if (btn(0, 0) and self.rotation > 0.27) then self.rotation = self.rotation - 0.005 end
-    if (btn(1, 0) and self.rotation < 0.73) then self.rotation = self.rotation + 0.005 end
+    if (btn(0, 0)) then
+        self.rotation = self.rotation > 0.27 and self.rotation - 0.001 * self.a or 0.27
+    end
+    if (btn(1, 0)) then
+        self.rotation = self.rotation < 0.73 and self.rotation + 0.001 * self.a or 0.73
+    end
+
+    if (not btn(0, 0) and not btn(1, 0)) then
+        self.a = 1 --reset canon rotation when released buttons
+    else
+        self.a = self.a < 20 and self.a + 0.33 or 20 --acclerate canon rotation when holding button
+    end
 
     if (btn(4, 0)) then
         self:fire()
