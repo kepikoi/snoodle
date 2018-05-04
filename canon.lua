@@ -67,7 +67,7 @@ end
 
 function Canon:fire()
     if (self.currentMonster) then
-        self.currentMonster:setTrajectory(nil, self.rotation)
+        self.currentMonster.direction = self.rotation
         self.currentMonster = nil
     end
 end

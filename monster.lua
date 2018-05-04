@@ -1,11 +1,12 @@
-local _initSpeed = 5 --default flying speed
+local _initSpeed = 2 --default flying speed
 local Monster = {
     x = -64,
     y = -64,
     alterSprite = false, -- show alternative sprite for animation
     direction = nil,
     speed = 0,
-    spriteCoolDown = rnd(40)
+    spriteCoolDown = rnd(40),
+    lastCell = nil
 }
 function Monster:new(obj, grid)
     assert(grid, 'monster requires grid instance')
@@ -18,7 +19,9 @@ function Monster:new(obj, grid)
 end
 
 function Monster:draw()
-    spr(self.alterSprite and self.sprite + 1 or self.sprite, self.x, self.y)
+--    spr(self.alterSprite and self.sprite + 1 or self.sprite, self.x, self.y)
+    circ(self.x+4,self.y+4,4,self.sprite) --debug
+    circ(self.x+4,self.y+4,0,10) --debug
 end
 
 function Monster:animateFace()
@@ -36,11 +39,7 @@ function Monster:update()
     if (self.direction) then
         self.speed = _initSpeed --enable flying
 
-        if (self.y <= 1) then
-            self.speed = 0 --stop flying when hit ceiling
-        end
-
-        if (self.x <= 0 or self.x >= 127) then
+        if (self.x <= 0 or self.x >= 119) then
             self.direction = 1 - self.direction --bounce of walls
         end
 
@@ -54,10 +53,6 @@ end
 function Monster:setCoords(this, x, y)
     self.x = x
     self.y = y
-end
-
-function Monster:setTrajectory(this, direction)
-    self.direction = direction
 end
 
 function Monster:registerGrid(this, grid)

@@ -95,5 +95,8 @@ function _draw()
     end
 
     robot:draw()
+
+    print('cpu:' .. stat(1) .. '% ram:' .. stat(0), 0, 0, 7)
+
 end
 

@@ -73,7 +73,7 @@ end
 
 function Canon:fire()
     if (self.currentMonster) then
-        self.currentMonster:setTrajectory(nil, self.rotation)
+        self.currentMonster.direction = self.rotation
         self.currentMonster = nil
     end
 end
@@ -84,14 +84,15 @@ end
 m42f75baf20d2ed1098fe910e9182122a = m42f75baf20d2ed1098fe910e9182122a()
 --------------sub-module-C:\Users\autod\OneDrive\Dokumente\pico8\carts\snoodle\monster.lua---------------------
 mebfe0a8595bbbc9dd2c88f55e7316bd7 = function()
-    local _initSpeed = 5 --default flying speed
+    local _initSpeed = 2 --default flying speed
 local Monster = {
     x = -64,
     y = -64,
     alterSprite = false, -- show alternative sprite for animation
     direction = nil,
     speed = 0,
-    spriteCoolDown = rnd(40)
+    spriteCoolDown = rnd(40),
+    lastCell = nil
 }
 function Monster:new(obj, grid)
     assert(grid, 'monster requires grid instance')
@@ -104,7 +105,9 @@ function Monster:new(obj, grid)
 end
 
 function Monster:draw()
-    spr(self.alterSprite and self.sprite + 1 or self.sprite, self.x, self.y)
+--    spr(self.alterSprite and self.sprite + 1 or self.sprite, self.x, self.y)
+    circ(self.x+4,self.y+4,4,self.sprite) --debug
+    circ(self.x+4,self.y+4,0,10) --debug
 end
 
 function Monster:animateFace()
@@ -122,11 +125,7 @@ function Monster:update()
     if (self.direction) then
         self.speed = _initSpeed --enable flying
 
-        if (self.y <= 1) then
-            self.speed = 0 --stop flying when hit ceiling
-        end
-
-        if (self.x <= 0 or self.x >= 127) then
+        if (self.x <= 0 or self.x >= 119) then
             self.direction = 1 - self.direction --bounce of walls
         end
 
@@ -140,10 +139,6 @@ end
 function Monster:setCoords(this, x, y)
     self.x = x
     self.y = y
-end
-
-function Monster:setTrajectory(this, direction)
-    self.direction = direction
 end
 
 function Monster:registerGrid(this, grid)
@@ -332,9 +327,34 @@ end
 meaad72aeae06ceb1154d27f2099820e1 = meaad72aeae06ceb1154d27f2099820e1()
 --------------sub-module-C:\Users\autod\OneDrive\Dokumente\pico8\carts\snoodle\grid.lua---------------------
 m0a253bbb1f61064d2cf908778f24fca5 = function()
-    local Grid = {
-    threat = 0
+    local _neighbors = { -16, -15, -1, 1, 15, 16 }
+local Grid = {
+    threat = 6,
+    cells = {}
 }
+
+--populate cells
+for y = 0, 13 do
+    local o = y % 2 == 0 and true or false
+    for x = 0, 15 do
+        if (x == 15 and not o) then
+            break --skip last cell at even lines
+        end
+        local cell = {
+            monster = nil,
+            threat = false
+        }
+        if (o) then
+            cell.x = x * 8
+        else
+            cell.x = x * 8 + 4
+        end
+        cell.y = y * 8
+        assert(cell.x, tostr(cell.x))
+        assert(cell.y, tostr(cell.y))
+        add(Grid.cells, cell)
+    end
+end
 
 function Grid:new(obj)
     obj = obj or {}
@@ -344,23 +364,103 @@ function Grid:new(obj)
 end
 
 function Grid:update()
+    for i = 1, ceil(self.threat * 15.5) do
+        assert(self.cells[i], 'no cell ' .. i)
+        self.cells[i].threat = true
+    end
 end
 
 function Grid:draw()
+    for i = 1, #self.cells do
+        local cell = self.cells[i]
+        if cell.active then
+            --            rectfill(cell.x, cell.y, cell.x + 8, cell.y + 8, 8) --debug
+        end
+        --        spr(63, cell.x, cell.y)  --debug
+    end
 
-    for y = 0, 13 do
-        local o = y % 2 == 0 and true or false
-        for x = 0, 15 do
-            if (x == 15 and not o) then
-                break
-            end
-            spr(63, o and x * 8 or x * 8 + 4, y * 8)
+    for x = 0, 16 do --draw threat ceiling
+        for y = 0, self.threat - 1 do
+            spr(22, x * 8 - 1, y * 8)
         end
     end
 end
 
-function Grid:checkPosition(this,monster)
-    circ(monster.x,monster.y,0,10)
+function Grid:findCellForMonster(monster)
+    local y = flr((monster.y + 4) / 8) + 1
+    local o = y % 2 == 1
+    local x = o and flr((monster.x + 4) / 8) + 1 or flr((monster.x + 4) / 8)
+    --    print(x .. ' ' .. y, monster.x, monster.y + 8, 7)
+    --    flip()
+    if x == 0 and not o then
+        x = 1 -- fix for first cell on odd rows
+    end
+    local n = ceil((y - 1) * 15.5 + x)
+    if (n <= 217) then
+        local cell = self.cells[n]
+        return cell
+    end
+    return nil
+end
+
+function Grid:checkPosition(this, monster)
+    local cell = self:findCellForMonster(monster)
+    for cell in all(self.cells) do
+        cell.active = false --debug: active cell marker
+    end
+    if (cell) then --if monster inside valid cell
+        cell.active = true --debug: mark active cell
+        if (cell.monster or cell.threat) then
+            fitMonsterInsideCell(monster, monster.lastCell)
+            self:checkDrop(self, monster.lastCell)
+        else
+            monster.lastCell = cell --remember last cell of monster and continue travel
+        end
+    end
+end
+
+function fitMonsterInsideCell(monster, cell)
+    assert(monster and cell)
+    cell.monster = monster --set monster cell
+    monster.x = cell.x --align to cell
+    monster.y = cell.y
+    monster.speed = 0
+    monster.direction = nil
+end
+
+--returns table index for value
+function get(table, value)
+    for i = 1, #table do
+        if table[i] == value then
+            return i
+        end
+    end
+end
+
+function Grid:checkDrop(this, cell, chain)
+    local chain = chain or {cell}
+
+    for n in all(_neighbors) do
+        local cellI = get(self.cells, cell)
+        if not cellI then return end
+
+        local neighborI = cellI + n
+        local neighborCell = self.cells[neighborI]
+        if (neighborCell and neighborCell.monster) then
+            if cell.monster.sprite == neighborCell.monster.sprite then
+                add(chain, neighborCell)
+                --                self:checkDrop(self, neighborCell, chain)
+            end
+        end
+    end
+    print(#chain, 14, 14, 7)
+    flip()
+
+    if #chain >= 3 then
+        for cell in all(chain) do
+            cell.monster.sprite = 16
+        end
+    end
 end
 
 return Grid
@@ -465,6 +565,9 @@ function _draw()
     end
 
     robot:draw()
+
+    print('cpu:' .. stat(1) .. '% ram:' .. stat(0), 0, 0, 7)
+
 end
 
 
@@ -477,14 +580,14 @@ __gfx__
 007007003222222332222223281616222816162211188111111111110ccddc077ccddc001222222212161612098888a009aaaaa00dddddd00dddddd000000000
 00000000322882233b2222b30855550008111100018008100188881007ccc07007ccc0702221112222111112098778a0098888a00d2222dd0dd22ddd00000000
 0000000003b88b3003bbbb30028888200255552000188100001111007070700770070707221222222222222200988a00009aaa000dd22dd00d2222d000000000
-056666000566660000000000000000000077700076f7766500400450000000000000000000000000000000000000000000000000000000000000000000000000
-06666660066666600056500000499f0007ccc7000f77665040540009000000000000000000000000000000000000000000000000000000000000000000000000
-0669696006696960056f65000499aaf07ccccc700f77665050000045000000000000000000000000000000000000000000000000000000000000000000000000
-066666600666666006f7f6000499aaa000efe0000f77665000944500000000000000000000000000000000000000000000000000000000000000000000000000
-0666566006665660056f650004999a900defed000f77665040450440000000000000000000000000000000000000000000000000000000000000000000000000
-056666500566665000565000024999400defed000f77665000000004000000000000000000000000000000000000000000000000000000000000000000000000
-006556000065560000000000002494000d000d000f77665054044045000000000000000000000000000000000000000000000000000000000000000000000000
-00066000000660000000000000000000ddb0ddb00f77665040050900000000000000000000000000000000000000000000000000000000000000000000000000
+056666000566660000000000000000000077700076f7766404040050000000000000000000000000000000000000000000000000000000000000000000000000
+06666660066666600056500000499f0007ccc7000f77665540000904000000000000000000000000000000000000000000000000000000000000000000000000
+0669696006696960056f65000499aaf07ccccc700f77665004404550000000000000000000000000000000000000000000000000000000000000000000000000
+066666600666666006f7f6000499aaa000efe0000f77665090045000000000000000000000000000000000000000000000000000000000000000000000000000
+0666566006665660056f650004999a900defed000f77665004004404000000000000000000000000000000000000000000000000000000000000000000000000
+056666500566665000565000024999400defed000f77665000000040000000000000000000000000000000000000000000000000000000000000000000000000
+006556000065560000000000002494000d000d000f77665005400455000000000000000000000000000000000000000000000000000000000000000000000000
+00066000000660000000000000000000ddb0ddb00f77665000090040000000000000000000000000000000000000000000000000000000000000000000000000
 0000000055555555055500f666005550055505550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000550555055000f6cccc660005500050000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000055555555500fcc0000cc6005500050000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
