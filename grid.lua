@@ -1,8 +1,9 @@
-local Grid = {}
+local Grid = {
+    threat = 0
+}
 
-function Grid:new()
+function Grid:new(obj)
     obj = obj or {}
-    obj.threat = 0
     setmetatable(obj, self)
     self.__index = self
     return obj
@@ -19,9 +20,13 @@ function Grid:draw()
             if (x == 15 and not o) then
                 break
             end
-          --  spr(4, o and x * 8 or x * 8 + 4, y * 8)
+            spr(63, o and x * 8 or x * 8 + 4, y * 8)
         end
     end
+end
+
+function Grid:checkPosition(this,monster)
+    circ(monster.x,monster.y,0,10)
 end
 
 return Grid

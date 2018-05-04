@@ -11,10 +11,10 @@ function _init()
     globals.i = 0
     globals.monsters = {}
 
-    canon = Canon:new();
-    lift = Lift:new({}, globals.monsters);
-    robot = Robot:new();
     grid = Grid:new();
+    canon = Canon:new();
+    lift = Lift:new({}, grid);
+    robot = Robot:new();
 
     --    lift:registerRobot(nil, robot);
     robot:registerCanon(nil, canon);
@@ -55,7 +55,6 @@ function listenToCheats()
     if (btnp(1, 0)) then tableAppend(globals.cheats, 'r', 10) end
     if (btnp(4, 0)) then tableAppend(globals.cheats, 'b', 10) end
     if (btnp(5, 0)) then tableAppend(globals.cheats, 'a', 10) end
-
 end
 
 function _update60()
@@ -86,6 +85,7 @@ function _draw()
     line(0, 0, 0, 127, 1)
     line(127, 0, 127, 127, 1)
 
+    grid:draw()
 
     canon:draw()
     lift:draw()
@@ -95,7 +95,5 @@ function _draw()
     end
 
     robot:draw()
-    grid:draw()
-
 end
 

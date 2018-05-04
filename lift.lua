@@ -1,14 +1,16 @@
-local Lift = {}
+local Monster = require('./monster')
 local _initPosition = 122 -- vertical lift positon
 local _xCoord = 120 -- horizontal lift position
-local Monster = require('./monster')
+local Lift = {
+    stage = 0,
+    currentMonster = nil,
+    position = _initPosition
+}
 
-function Lift:new(obj)
-
+function Lift:new(obj, grid)
+    assert(grid)
     obj = obj or {}
-    obj.position = _initPosition
-    obj.stage = 0
-    obj.currentMonster = nil
+    obj.grid = grid
     setmetatable(obj, self)
     self.__index = self
     return obj
@@ -16,7 +18,7 @@ end
 
 function Lift:draw()
     spr(21, _xCoord, self.position)
---    print(self.currentMonster, _xCoord - 14, 90, 3)
+    --    print(self.currentMonster, _xCoord - 14, 90, 3)
 end
 
 function Lift:update()
@@ -30,7 +32,7 @@ function Lift:update()
 end
 
 function Lift:addMonster()
-
+    assert(self.grid)
     if self.stage == 1 then --descend
 
         if globals.i % 5 then
@@ -39,7 +41,7 @@ function Lift:addMonster()
 
         if self.position > 136 then -- below surface
 
-            local currentMonster = Monster:new() --assign new monster
+            local currentMonster = Monster:new({}, self.grid) --assign new monster
             add(globals.monsters, currentMonster)
             self.currentMonster = currentMonster
 

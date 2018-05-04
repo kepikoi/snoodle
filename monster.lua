@@ -1,14 +1,17 @@
-local Monster = {}
-local _speed = 0.1 --higher is faster
-function Monster:new(obj)
+local _initSpeed = 5 --default flying speed
+local Monster = {
+    x = -64,
+    y = -64,
+    alterSprite = false, -- show alternative sprite for animation
+    direction = nil,
+    speed = 0,
+    spriteCoolDown = rnd(40)
+}
+function Monster:new(obj, grid)
+    assert(grid, 'monster requires grid instance')
     obj = obj or {}
-    obj.sprite = 1 + flr(rnd(7)) * 2
-    obj.x = -64
-    obj.y = -64
-    obj.distance = 0
-    obj.spriteCoolDown = rnd(40)
-    obj.alterSprite = false
-    obj.direction = nil
+    obj.grid = grid
+    obj.sprite = 1 + flr(rnd(7)) * 2, --sprite determines monster type
     setmetatable(obj, self)
     self.__index = self
     return obj
@@ -21,7 +24,7 @@ end
 function Monster:animateFace()
     self.spriteCoolDown = self.spriteCoolDown - 1
     if (self.spriteCoolDown < 0) then
-        self.alterSprite = not self.alterSprite
+        self.alterSprite = not self.alterSprite --periodically change sprite
         self.spriteCoolDown = rnd(40)
     end
 end
@@ -30,23 +33,21 @@ function Monster:update()
 
     self:animateFace();
 
-
     if (self.direction) then
-        self.x = self.x + sin(self.direction) * self.distance
-        self.y = self.y + cos(self.direction) * self.distance
-        self.distance = self.distance + _speed
+        self.speed = _initSpeed --enable flying
 
-        if (self.y <= 0) then
-            self.distance = 0  --stop flying
+        if (self.y <= 1) then
+            self.speed = 0 --stop flying when hit ceiling
         end
 
         if (self.x <= 0 or self.x >= 127) then
-            self.direction = 1 - self.direction
+            self.direction = 1 - self.direction --bounce of walls
         end
-    end
 
-    if (distance == 100) then
-        remove(globals.monsters, self)
+        self.x = self.x + sin(self.direction) * self.speed
+        self.y = self.y + cos(self.direction) * self.speed
+
+        self.grid:checkPosition(nil, self)
     end
 end
 
@@ -57,6 +58,10 @@ end
 
 function Monster:setTrajectory(this, direction)
     self.direction = direction
+end
+
+function Monster:registerGrid(this, grid)
+    self.grid = grid
 end
 
 return Monster

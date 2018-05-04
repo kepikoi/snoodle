@@ -2,27 +2,27 @@ pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
 globals = {}
---------------sub-module-c:\users\autod\onedrive\dokumente\pico8\carts\snoodle\canon.lua---------------------
+--------------sub-module-C:\Users\autod\OneDrive\Dokumente\pico8\carts\snoodle\canon.lua---------------------
 m42f75baf20d2ed1098fe910e9182122a = function()
-    local canon = {}
-local _initrotation = 0.5
-local _tankcoords = {
+    local _initRotation = 0.5
+local _initA = 1
+local Canon = {
     x = 60,
-    y = 116
+    y = 116,
+    a = _initA, --accelaration
+    currentMonster = nil,
+    rotation = _initRotation
 }
 
-function canon:new(obj)
+function Canon:new(obj)
     obj = obj or {}
-    obj.rotation = _initrotation
-    obj.currentmonster = nil
-    self.a = 1
     setmetatable(obj, self)
     self.__index = self
     return obj
 end
 
-function canon:draw()
---    print(self.a, 64, 64, 13)
+function Canon:draw()
+    --    print(self.a, 64, 64, 13)
 
     -- draw canon circles
     for i = 2, 4 do
@@ -32,21 +32,21 @@ function canon:draw()
             s = 19 -- last canon sprite
             m = 0.5
         end
-        spr(s, (5 + m) * i * (sin(self.rotation)) + _tankcoords.x, (5 + m) * i * cos(self.rotation) + _tankcoords.y)
+        spr(s, (5 + m) * i * (sin(self.rotation)) + self.x, (5 + m) * i * cos(self.rotation) + self.y)
     end
 
-    --print(self.currentmonster, _tankcoords.x, _tankcoords.y, 14);
+    --print(self.currentMonster, self.x, self.y, 14);
 end
 
-function canon:update()
+function Canon:update()
     --convert mouse x coord to rotation
     if (stat(32) > 17 and stat(32) < 79) then
         self.rotation = 1 / 128 * stat(32)
     end
 
     --update monster position
-    if (self.currentmonster) then
-        self.currentmonster:setcoords(nil, _tankcoords.x, _tankcoords.y) -- align monster to  the midle of the canon tank
+    if (self.currentMonster) then
+        self.currentMonster:setCoords(nil, self.x, self.y) -- align monster to  the midle of the canon tank
     end
 
     if (btn(0, 0)) then
@@ -57,7 +57,7 @@ function canon:update()
     end
 
     if (not btn(0, 0) and not btn(1, 0)) then
-        self.a = 1 --reset canon rotation when released buttons
+        self.a = _initA --reset canon rotation when released buttons
     else
         self.a = self.a < 20 and self.a + 0.33 or 20 --acclerate canon rotation when holding button
     end
@@ -67,123 +67,130 @@ function canon:update()
     end
 end
 
-function canon:mountmonster(this, monster)
-    self.currentmonster = monster
+function Canon:mountMonster(this, monster)
+    self.currentMonster = monster
 end
 
-function canon:fire()
-    if (self.currentmonster) then
-        self.currentmonster:settrajectory(nil, self.rotation)
-        self.currentmonster = nil
+function Canon:fire()
+    if (self.currentMonster) then
+        self.currentMonster:setTrajectory(nil, self.rotation)
+        self.currentMonster = nil
     end
 end
 
-return canon
+return Canon
 
 end
 m42f75baf20d2ed1098fe910e9182122a = m42f75baf20d2ed1098fe910e9182122a()
---------------sub-module-c:\users\autod\onedrive\dokumente\pico8\carts\snoodle\monster.lua---------------------
+--------------sub-module-C:\Users\autod\OneDrive\Dokumente\pico8\carts\snoodle\monster.lua---------------------
 mebfe0a8595bbbc9dd2c88f55e7316bd7 = function()
-    local monster = {}
-local _speed = 0.1 --higher is faster
-function monster:new(obj)
+    local _initSpeed = 5 --default flying speed
+local Monster = {
+    x = -64,
+    y = -64,
+    alterSprite = false, -- show alternative sprite for animation
+    direction = nil,
+    speed = 0,
+    spriteCoolDown = rnd(40)
+}
+function Monster:new(obj, grid)
+    assert(grid, 'monster requires grid instance')
     obj = obj or {}
-    obj.sprite = 1 + flr(rnd(7)) * 2
-    obj.x = -64
-    obj.y = -64
-    obj.distance = 0
-    obj.spritecooldown = rnd(40)
-    obj.altersprite = false
-    obj.direction = nil
+    obj.grid = grid
+    obj.sprite = 1 + flr(rnd(7)) * 2, --sprite determines monster type
     setmetatable(obj, self)
     self.__index = self
     return obj
 end
 
-function monster:draw()
-    spr(self.altersprite and self.sprite + 1 or self.sprite, self.x, self.y)
+function Monster:draw()
+    spr(self.alterSprite and self.sprite + 1 or self.sprite, self.x, self.y)
 end
 
-function monster:animateface()
-    self.spritecooldown = self.spritecooldown - 1
-    if (self.spritecooldown < 0) then
-        self.altersprite = not self.altersprite
-        self.spritecooldown = rnd(40)
+function Monster:animateFace()
+    self.spriteCoolDown = self.spriteCoolDown - 1
+    if (self.spriteCoolDown < 0) then
+        self.alterSprite = not self.alterSprite --periodically change sprite
+        self.spriteCoolDown = rnd(40)
     end
 end
 
-function monster:update()
+function Monster:update()
 
-    self:animateface();
-
+    self:animateFace();
 
     if (self.direction) then
-        self.x = self.x + sin(self.direction) * self.distance
-        self.y = self.y + cos(self.direction) * self.distance
-        self.distance = self.distance + _speed
+        self.speed = _initSpeed --enable flying
 
-        if (self.y <= 0) then
-            self.distance = 0  --stop flying
+        if (self.y <= 1) then
+            self.speed = 0 --stop flying when hit ceiling
         end
 
         if (self.x <= 0 or self.x >= 127) then
-            self.direction = 1 - self.direction
+            self.direction = 1 - self.direction --bounce of walls
         end
-    end
 
-    if (distance == 100) then
-        remove(globals.monsters, self)
+        self.x = self.x + sin(self.direction) * self.speed
+        self.y = self.y + cos(self.direction) * self.speed
+
+        self.grid:checkPosition(nil, self)
     end
 end
 
-function monster:setcoords(this, x, y)
+function Monster:setCoords(this, x, y)
     self.x = x
     self.y = y
 end
 
-function monster:settrajectory(this, direction)
+function Monster:setTrajectory(this, direction)
     self.direction = direction
 end
 
-return monster
+function Monster:registerGrid(this, grid)
+    self.grid = grid
+end
+
+return Monster
 
 end
 mebfe0a8595bbbc9dd2c88f55e7316bd7 = mebfe0a8595bbbc9dd2c88f55e7316bd7()
---------------sub-module-c:\users\autod\onedrive\dokumente\pico8\carts\snoodle\lift.lua---------------------
+--------------sub-module-C:\Users\autod\OneDrive\Dokumente\pico8\carts\snoodle\lift.lua---------------------
 mb0de3a3ccbdbdd0e0742cda2d8b4752d = function()
-    local lift = {}
-local _initposition = 122 -- vertical lift positon
-local _xcoord = 120 -- horizontal lift position
-local monster = mebfe0a8595bbbc9dd2c88f55e7316bd7
+    local Monster = mebfe0a8595bbbc9dd2c88f55e7316bd7
+local _initPosition = 122 -- vertical lift positon
+local _xCoord = 120 -- horizontal lift position
+local Lift = {
+    stage = 0,
+    currentMonster = nil,
+    position = _initPosition
+}
 
-function lift:new(obj)
-
+function Lift:new(obj, grid)
+    assert(grid)
     obj = obj or {}
-    obj.position = _initposition
-    obj.stage = 0
-    obj.currentmonster = nil
+    obj.grid = grid
     setmetatable(obj, self)
     self.__index = self
     return obj
 end
 
-function lift:draw()
-    spr(21, _xcoord, self.position)
---    print(self.currentmonster, _xcoord - 14, 90, 3)
+function Lift:draw()
+    spr(21, _xCoord, self.position)
+    --    print(self.currentMonster, _xCoord - 14, 90, 3)
 end
 
-function lift:update()
-    if self.currentmonster then
-        self.currentmonster:setcoords(nil, _xcoord - 1, self.position - 8) --move monster with lift
+function Lift:update()
+    if self.currentMonster then
+        self.currentMonster:setCoords(nil, _xCoord - 1, self.position - 8) --move monster with lift
     else
         self.stage = 1
     end
 
-    self:addmonster() -- add monster when lift is empty
+    self:addMonster() -- add monster when lift is empty
 end
 
-function lift:addmonster()
-
+function Lift:addMonster()
+    assert(self.grid)
     if self.stage == 1 then --descend
 
         if globals.i % 5 then
@@ -192,9 +199,9 @@ function lift:addmonster()
 
         if self.position > 136 then -- below surface
 
-            local currentmonster = monster:new() --assign new monster
-            add(globals.monsters, currentmonster)
-            self.currentmonster = currentmonster
+            local currentMonster = Monster:new({}, self.grid) --assign new monster
+            add(globals.monsters, currentMonster)
+            self.currentMonster = currentMonster
 
             self.stage = 2
         end
@@ -206,86 +213,87 @@ function lift:addmonster()
             self.position = self.position - 1
         end
 
-        if self.position <= _initposition then --lift is done and ready
+        if self.position <= _initPosition then --lift is done and ready
             self.stage = 0
         end
     end
 end
 
-return lift
+return Lift
 end
 mb0de3a3ccbdbdd0e0742cda2d8b4752d = mb0de3a3ccbdbdd0e0742cda2d8b4752d()
---------------sub-module-c:\users\autod\onedrive\dokumente\pico8\carts\snoodle\robot.lua---------------------
+--------------sub-module-C:\Users\autod\OneDrive\Dokumente\pico8\carts\snoodle\robot.lua---------------------
 meaad72aeae06ceb1154d27f2099820e1 = function()
-    local robot = {}
-local _initpos = 110 -- init  x coord
-local _initdirection = 0 -- init arm position
-local _ycoord = 115 -- robots permament vertical coord
-local _animspeed = 1 -- higher is slower
-function robot:new(obj)
+    local _initPos = 110 -- init  x coord
+local _initDirection = 0 -- init arm position
+local _yCoord = 115 -- robots permament vertical coord
+local _animSpeed = 1 -- higher is slower
+local Robot = {
+    x = _initPos,
+    y = _yCoord,
+    sprite = 20,
+    direction = _initDirection,
+    stage = 0,
+    currentMonster = nil,
+    canon = nil,
+    lift = nil,
+    armsDistance = nil,
+    monsterDistance = nil
+}
+function Robot:new(obj)
     obj = obj or {}
-    obj.sprite = 20
-    obj.x = _initpos
-    obj.y = _ycoord
-    obj.direction = _initdirection
-    obj.stage = 0
-    obj.currentmonster = nil
-    obj.canon = nil
-    obj.lift = nil
-    obj.armsdistance = nil
-    obj.monsterdistance = nil
     setmetatable(obj, self)
     self.__index = self
     return obj
 end
 
 --revolve object around robot
-function robot:revolve(this, distance)
+function Robot:revolve(this, distance)
     return {
         x = distance * cos(self.direction) + self.x;
         y = distance * sin(self.direction) + self.y;
     }
 end
 
-function robot:registercanon(this, canon)
+function Robot:registerCanon(this, canon)
     self.canon = canon
 end
 
-function robot:registerlift(this, lift)
+function Robot:registerLift(this, lift)
     self.lift = lift
 end
 
-function robot:draw()
+function Robot:draw()
 
     spr(self.sprite, self.x, self.y) --body
 
-    line(self.x + 3, self.y + 4, self.armsdistance.x + 3, self.armsdistance.y + 4, 11) --arm
-    circ(self.armsdistance.x + 3, self.armsdistance.y + 4, 1, 8) -- upper claw
+    line(self.x + 3, self.y + 4, self.armsDistance.x + 3, self.armsDistance.y + 4, 11) --arm
+    circ(self.armsDistance.x + 3, self.armsDistance.y + 4, 1, 8) -- upper claw
 
-    --    print(self.currentmonster, self.x-5, self.y-6, 4)
+    --    print(self.currentMonster, self.x-5, self.y-6, 4)
 end
 
-function robot:grabmonster()
-    self.currentmonster = self.lift.currentmonster
-    self.lift.currentmonster = nil
+function Robot:grabMonster()
+    self.currentMonster = self.lift.currentMonster
+    self.lift.currentMonster = nil
     self.stage = 1
 end
 
-function robot:update()
+function Robot:update()
 
-    if (self.stage == 0 and not self.canon.currentmonster and self.lift.currentmonster) then
-        self:grabmonster()
+    if (self.stage == 0 and not self.canon.currentMonster and self.lift.currentMonster) then
+        self:grabMonster()
     end
 
-    self.armsdistance = self:revolve(nil, 5)
-    self.monsterdistance = self:revolve(nil, 9)
+    self.armsDistance = self:revolve(nil, 5)
+    self.monsterDistance = self:revolve(nil, 9)
 
-    if self.currentmonster then
-        self.currentmonster:setcoords(nil, self.monsterdistance.x - 2, self.monsterdistance.y) -- transport monster
+    if self.currentMonster then
+        self.currentMonster:setCoords(nil, self.monsterDistance.x - 2, self.monsterDistance.y) -- transport monster
     end
 
     if self.stage == 1 then -- rotate to canon
-        if globals.i % _animspeed == 0 then
+        if globals.i % _animSpeed == 0 then
             if self.direction < 0.48 then
                 self.direction = self.direction + 0.05
             else
@@ -295,13 +303,13 @@ function robot:update()
     end
 
     if self.stage == 2 then -- run to canon
-        if globals.i % _animspeed == 0 then
+        if globals.i % _animSpeed == 0 then
             if self.x > 65 then
                 self.x = self.x - 2
             else
-                self.direction = _initdirection --rotate back to lift
-                self.canon:mountmonster(nil, self.currentmonster)
-                self.currentmonster = nil
+                self.direction = _initDirection --rotate back to lift
+                self.canon:mountMonster(nil, self.currentMonster)
+                self.currentMonster = nil
 
                 self.stage = 3
             end
@@ -309,8 +317,8 @@ function robot:update()
     end
 
     if self.stage == 3 then --return to lift
-        if globals.i % _animspeed == 0 then
-            if self.x < _initpos then
+        if globals.i % _animSpeed == 0 then
+            if self.x < _initPos then
                 self.x = self.x + 3
             else
                 self.stage = 0
@@ -319,25 +327,26 @@ function robot:update()
     end
 end
 
-return robot;
+return Robot;
 end
 meaad72aeae06ceb1154d27f2099820e1 = meaad72aeae06ceb1154d27f2099820e1()
---------------sub-module-c:\users\autod\onedrive\dokumente\pico8\carts\snoodle\grid.lua---------------------
+--------------sub-module-C:\Users\autod\OneDrive\Dokumente\pico8\carts\snoodle\grid.lua---------------------
 m0a253bbb1f61064d2cf908778f24fca5 = function()
-    local grid = {}
+    local Grid = {
+    threat = 0
+}
 
-function grid:new()
+function Grid:new(obj)
     obj = obj or {}
-    obj.threat = 0
     setmetatable(obj, self)
     self.__index = self
     return obj
 end
 
-function grid:update()
+function Grid:update()
 end
 
-function grid:draw()
+function Grid:draw()
 
     for y = 0, 13 do
         local o = y % 2 == 0 and true or false
@@ -345,22 +354,26 @@ function grid:draw()
             if (x == 15 and not o) then
                 break
             end
-          --  spr(4, o and x * 8 or x * 8 + 4, y * 8)
+            spr(63, o and x * 8 or x * 8 + 4, y * 8)
         end
     end
 end
 
-return grid
+function Grid:checkPosition(this,monster)
+    circ(monster.x,monster.y,0,10)
+end
+
+return Grid
 end
 m0a253bbb1f61064d2cf908778f24fca5 = m0a253bbb1f61064d2cf908778f24fca5()
 
 --------------root-module---------------------
 --snoodle
 --by kepikoi
-canon = m42f75baf20d2ed1098fe910e9182122a
-lift = mb0de3a3ccbdbdd0e0742cda2d8b4752d
-robot = meaad72aeae06ceb1154d27f2099820e1
-grid = m0a253bbb1f61064d2cf908778f24fca5
+Canon = m42f75baf20d2ed1098fe910e9182122a
+Lift = mb0de3a3ccbdbdd0e0742cda2d8b4752d
+Robot = meaad72aeae06ceb1154d27f2099820e1
+Grid = m0a253bbb1f61064d2cf908778f24fca5
 
 function _init()
     --    poke(0x5f2d, 1) --mouse support
@@ -368,31 +381,31 @@ function _init()
     globals.i = 0
     globals.monsters = {}
 
-    canon = canon:new();
-    lift = lift:new({}, globals.monsters);
-    robot = robot:new();
-    grid = grid:new();
+    grid = Grid:new();
+    canon = Canon:new();
+    lift = Lift:new({}, grid);
+    robot = Robot:new();
 
-    --    lift:registerrobot(nil, robot);
-    robot:registercanon(nil, canon);
-    robot:registerlift(nil, lift);
+    --    lift:registerRobot(nil, robot);
+    robot:registerCanon(nil, canon);
+    robot:registerLift(nil, lift);
 
     -- init first monster
-    lift:addmonster();
+    lift:addMonster();
 
     --eanble cheats
     globals.cheats = {}
 end
 
 --append value to table while retaining max table entries. oldest value will be removed on insertion when table is full
-function tableappend(table, value, max)
+function tableAppend(table, value, max)
     if (#table > max - 1) then
         del(table, table[1])
     end
     add(table, value)
 end
 
-function tabletostring(table)
+function tableToString(table)
     local s = ''
     for k in all(table) do
         s = s .. k
@@ -400,19 +413,18 @@ function tabletostring(table)
     return s
 end
 
-function listentocheats()
+function listenToCheats()
 
-    if (tabletostring(globals.cheats) == 'uuddlrlrba') then
+    if (tableToString(globals.cheats) == 'uuddlrlrba') then
         sfx(33)
     end
 
-    if (btnp(2, 0)) then tableappend(globals.cheats, 'u', 10) end
-    if (btnp(3, 0)) then tableappend(globals.cheats, 'd', 10) end
-    if (btnp(0, 0)) then tableappend(globals.cheats, 'l', 10) end
-    if (btnp(1, 0)) then tableappend(globals.cheats, 'r', 10) end
-    if (btnp(4, 0)) then tableappend(globals.cheats, 'b', 10) end
-    if (btnp(5, 0)) then tableappend(globals.cheats, 'a', 10) end
-
+    if (btnp(2, 0)) then tableAppend(globals.cheats, 'u', 10) end
+    if (btnp(3, 0)) then tableAppend(globals.cheats, 'd', 10) end
+    if (btnp(0, 0)) then tableAppend(globals.cheats, 'l', 10) end
+    if (btnp(1, 0)) then tableAppend(globals.cheats, 'r', 10) end
+    if (btnp(4, 0)) then tableAppend(globals.cheats, 'b', 10) end
+    if (btnp(5, 0)) then tableAppend(globals.cheats, 'a', 10) end
 end
 
 function _update60()
@@ -429,7 +441,7 @@ function _update60()
     grid:update()
 
     if (globals.cheats) then
-        listentocheats()
+        listenToCheats()
     end
 end
 
@@ -443,6 +455,7 @@ function _draw()
     line(0, 0, 0, 127, 1)
     line(127, 0, 127, 127, 1)
 
+    grid:draw()
 
     canon:draw()
     lift:draw()
@@ -452,8 +465,6 @@ function _draw()
     end
 
     robot:draw()
-    grid:draw()
-
 end
 
 
@@ -466,7 +477,7 @@ __gfx__
 007007003222222332222223281616222816162211188111111111110ccddc077ccddc001222222212161612098888a009aaaaa00dddddd00dddddd000000000
 00000000322882233b2222b30855550008111100018008100188881007ccc07007ccc0702221112222111112098778a0098888a00d2222dd0dd22ddd00000000
 0000000003b88b3003bbbb30028888200255552000188100001111007070700770070707221222222222222200988a00009aaa000dd22dd00d2222d000000000
-056666000566660000000000000000000077700076667f6500400450000000000000000000000000000000000000000000000000000000000000000000000000
+056666000566660000000000000000000077700076f7766500400450000000000000000000000000000000000000000000000000000000000000000000000000
 06666660066666600056500000499f0007ccc7000f77665040540009000000000000000000000000000000000000000000000000000000000000000000000000
 0669696006696960056f65000499aaf07ccccc700f77665050000045000000000000000000000000000000000000000000000000000000000000000000000000
 066666600666666006f7f6000499aaa000efe0000f77665000944500000000000000000000000000000000000000000000000000000000000000000000000000
@@ -482,14 +493,14 @@ __gfx__
 00000000555550550fc0000000000c60005000500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000050555555fc000000000000c6055505550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000055555555fc000000000000c6500050000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-1010010050005000fc000000000000c6000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-1010010055055505fc000000000000c7000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-10010120005000500fc0000000000c70000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-020100107777777776c0000000000c77000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-0000001066666666666c00000000c766000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00020010666666666666cc0000cc6666000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-0010001066666666666666cccc666666000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-20100010666666666666666666666666000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+1010010050005000fc000000000000c6000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005555550
+1010010055055505fc000000000000c7000000000000000000000000000000000000000000000000000000000000000000000000000000000000000050000005
+10010120005000500fc0000000000c70000000000000000000000000000000000000000000000000000000000000000000000000000000000000000050000005
+020100107777777776c0000000000c77000000000000000000000000000000000000000000000000000000000000000000000000000000000000000050000005
+0000001066666666666c00000000c666000000000000000000000000000000000000000000000000000000000000000000000000000000000000000050000005
+00020010666666666666cc0000cc6666000000000000000000000000000000000000000000000000000000000000000000000000000000000000000050000005
+0010001066666666666666cccc666666000000000000000000000000000000000000000000000000000000000000000000000000000000000000000050000005
+20100010666666666666666666666666000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005555550
 __map__
 3a3a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000

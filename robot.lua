@@ -1,20 +1,21 @@
-local Robot = {}
 local _initPos = 110 -- init  x coord
 local _initDirection = 0 -- init arm position
 local _yCoord = 115 -- robots permament vertical coord
 local _animSpeed = 1 -- higher is slower
+local Robot = {
+    x = _initPos,
+    y = _yCoord,
+    sprite = 20,
+    direction = _initDirection,
+    stage = 0,
+    currentMonster = nil,
+    canon = nil,
+    lift = nil,
+    armsDistance = nil,
+    monsterDistance = nil
+}
 function Robot:new(obj)
     obj = obj or {}
-    obj.sprite = 20
-    obj.x = _initPos
-    obj.y = _yCoord
-    obj.direction = _initDirection
-    obj.stage = 0
-    obj.currentMonster = nil
-    obj.canon = nil
-    obj.lift = nil
-    obj.armsDistance = nil
-    obj.monsterDistance = nil
     setmetatable(obj, self)
     self.__index = self
     return obj
