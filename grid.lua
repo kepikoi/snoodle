@@ -39,14 +39,27 @@ function Grid:update()
         assert(self.cells[i], 'no cell ' .. i)
         self.cells[i].threat = true
     end
+
+    for cell in all(self.cells) do
+        if cell.monster then
+            -- drop disconnected monsters
+            local isConnected = false
+            for neighborCell in all(self:getNeighborCells(nil, cell)) do
+                if (neighborCell.threat or neighborCell.monster) then --is connected, do not drop
+                    isConnected = true
+                end
+            end
+            if (not isConnected) then
+                cell.monster.isDropped = true -- drop if cell is not connected to ceiling or populated cell
+                cell.monster = nil
+            end
+        end
+    end
 end
 
 function Grid:draw()
     for i = 1, #self.cells do
         local cell = self.cells[i]
-        if cell.active then
-            --            rectfill(cell.x, cell.y, cell.x + 8, cell.y + 8, 8) --debug
-        end
         --        spr(63, cell.x, cell.y)  --debug
     end
 
@@ -76,14 +89,10 @@ end
 
 function Grid:checkPosition(this, monster)
     local cell = self:findCellForMonster(monster)
-    for cell in all(self.cells) do
-        cell.active = false --debug: active cell marker
-    end
     if (cell) then --if monster inside valid cell
-        cell.active = true --debug: mark active cell
-        if (cell.monster or cell.threat) then
+        if (cell.monster or cell.threat) then -- next cell cannot be populated, populate last cell
             fitMonsterInsideCell(monster, monster.lastCell)
-            self:checkDrop(self, monster.lastCell)
+            self:dropMatchingCells(nil, monster.lastCell) -- mark isDropped when matching neighbors
         else
             monster.lastCell = cell --remember last cell of monster and continue travel
         end
@@ -91,7 +100,6 @@ function Grid:checkPosition(this, monster)
 end
 
 function fitMonsterInsideCell(monster, cell)
-    assert(monster and cell)
     cell.monster = monster --set monster cell
     monster.x = cell.x --align to cell
     monster.y = cell.y
@@ -106,30 +114,128 @@ function get(table, value)
             return i
         end
     end
+    return nil
 end
 
-function Grid:checkDrop(this, cell, chain)
-    local chain = chain or {cell}
+--returns if table conains given value
+function contains(table, value)
+    for v in all(table) do
+        if v == value then return true
+        end
+        return false
+    end
+end
 
-    for n in all(_neighbors) do
-        local cellI = get(self.cells, cell)
-        if not cellI then return end
+--checks if cell is a matching neighbor of candidate cell
+function Grid:isMatchingNeighbor(this, cell, candidate)
+    local matchingNeighbors = self:getMatchingNeighbors(nil, cell)
+    for matchingNeighbor in all(matchingNeighbors) do
+        if matchingNeighbor == candidate then return true
+        end
+    end
+    return false
+end
 
-        local neighborI = cellI + n
-        local neighborCell = self.cells[neighborI]
-        if (neighborCell and neighborCell.monster) then
-            if cell.monster.sprite == neighborCell.monster.sprite then
-                add(chain, neighborCell)
-                --                self:checkDrop(self, neighborCell, chain)
+--return all populated and matching neighbor cells
+function Grid:getMatchingNeighbors(this, cell)
+    assert(cell.monster)
+    local neighborCells = self:getPopulatedNeighborCells(nil, cell)
+    local matches = {}
+    for neighborCell in all(neighborCells) do
+        if neighborCell.monster.sprite == cell.monster.sprite then
+            add(matches, neighborCell)
+        end
+    end
+    return matches
+end
+
+--returns a table with all neighbor cells with a monster for  cell
+function Grid:getPopulatedNeighborCells(this, cell)
+    local neighborCells = self:getNeighborCells(nil, cell)
+    local populatedNeighborCells = {}
+    for neighborCell in all(neighborCells) do
+        if neighborCell.monster then
+            add(populatedNeighborCells, neighborCell)
+        end
+    end
+    return populatedNeighborCells
+end
+
+--returns alls neighbor cells
+function Grid:getNeighborCells(this, cell)
+    assert(cell)
+    local neighborCells = {}
+    for neighborIndex in all(_neighbors) do
+        local cellIndex = get(self.cells, cell)
+        if cellIndex then
+            local neighborIndex = cellIndex + neighborIndex
+            local neighborCell = self.cells[neighborIndex]
+            if neighborCell then
+                add(neighborCells, neighborCell)
             end
         end
     end
-    print(#chain, 14, 14, 7)
-    flip()
 
-    if #chain >= 3 then
-        for cell in all(chain) do
-            cell.monster.sprite = 16
+    return neighborCells
+end
+
+function Grid:dropMatchingCells(this, cell)
+    --    if cell.monster then
+    --        local i = (i or 0) + 1
+    --        assert(i < 100, 'iteration loop at ' .. i)
+    --        assert(cell)
+    --        local chain = chain or {}
+    --        add(chain, cell) -- add curent cell to chain
+    --
+    --        for neighborCell in all(self:getPopulatedNeighborCells(nil, cell)) do
+    --            if (not get(chain, neighborCell)) then --cell exists and not already in chain
+    --                assert(cell.monster)
+    --                assert(neighborCell and neighborCell.monster)
+    --                if cell.monster.sprite == neighborCell.monster.sprite then --if same monster type
+    --                    self:checkDrop(self, neighborCell, chain, i)
+    --                end
+    --            end
+    --        end
+    --
+    --        print(#chain, 14, 14, 7)
+    --        flip()
+    --
+    --        if #chain >= 3 then
+    --            for cell in all(chain) do
+    --                cell.monster.isDropped = true
+    --                cell.monster = nil
+    --            end
+    --        end
+    --    end
+
+    local matches = { cell }
+    repeat
+        local nuMatches = {}
+        for cell in all(self.cells) do
+            if not get(matches, cell) then --skip cells that are matches
+                if cell.monster then
+                    for match in all(matches) do
+                        if self:isMatchingNeighbor(nil, cell, match) then
+                            add(nuMatches, cell)
+                            break -- nuMatch found. Break comparing with existing matches to prevent duplicates and continue with next cell.
+                        end
+                    end
+                end
+            end
+        end
+
+        for nuMatch in all(nuMatches) do
+            --assert(get(matches, nuMatch), 'duplicate match found')
+            add(matches, nuMatch)
+        end
+    until #nuMatches == 0
+
+    --print(#matches,43,67,9)
+
+    if #matches >= 3 then
+        for cell in all(matches) do
+            cell.monster.isDropped = true
+            cell.monster = nil
         end
     end
 end

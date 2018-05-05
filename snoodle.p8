@@ -85,6 +85,7 @@ m42f75baf20d2ed1098fe910e9182122a = m42f75baf20d2ed1098fe910e9182122a()
 --------------sub-module-C:\Users\autod\OneDrive\Dokumente\pico8\carts\snoodle\monster.lua---------------------
 mebfe0a8595bbbc9dd2c88f55e7316bd7 = function()
     local _initSpeed = 2 --default flying speed
+
 local Monster = {
     x = -64,
     y = -64,
@@ -92,7 +93,8 @@ local Monster = {
     direction = nil,
     speed = 0,
     spriteCoolDown = rnd(40),
-    lastCell = nil
+    lastCell = nil,
+    isDropped = false
 }
 function Monster:new(obj, grid)
     assert(grid, 'monster requires grid instance')
@@ -105,9 +107,9 @@ function Monster:new(obj, grid)
 end
 
 function Monster:draw()
---    spr(self.alterSprite and self.sprite + 1 or self.sprite, self.x, self.y)
-    circ(self.x+4,self.y+4,4,self.sprite) --debug
-    circ(self.x+4,self.y+4,0,10) --debug
+    spr(self.alterSprite and self.sprite + 1 or self.sprite, self.x, self.y)
+    --    circ(self.x+4,self.y+4,4,self.sprite) --debug
+    --    circ(self.x+4,self.y+4,0,10) --debug
 end
 
 function Monster:animateFace()
@@ -122,18 +124,30 @@ function Monster:update()
 
     self:animateFace();
 
-    if (self.direction) then
+    if (self.direction and not self.isDropped) then --when flying
         self.speed = _initSpeed --enable flying
 
         if (self.x <= 0 or self.x >= 119) then
             self.direction = 1 - self.direction --bounce of walls
         end
 
-        self.x = self.x + sin(self.direction) * self.speed
-        self.y = self.y + cos(self.direction) * self.speed
-
-        self.grid:checkPosition(nil, self)
+       self.grid:checkPosition(nil, self) -- check collision and align monster to cell
     end
+
+    --  if (not self.direction) then  --when stopped and aligned inside cell
+    -- end
+
+    if (self.isDropped) then --fall down when dropped
+        --self.lastCell.monster = nil
+        self.speed = _initSpeed * 2
+        self.direction = 0
+    end
+
+
+    self.x = self.x + sin(self.direction) * self.speed
+    self.y = self.y + cos(self.direction) * self.speed
+
+    if self.y > 128 then del(globals.monsters, self) end --remove monster from memory
 end
 
 function Monster:setCoords(this, x, y)
@@ -368,14 +382,27 @@ function Grid:update()
         assert(self.cells[i], 'no cell ' .. i)
         self.cells[i].threat = true
     end
+
+    for cell in all(self.cells) do
+        if cell.monster then
+            -- drop disconnected monsters
+            local isConnected = false
+            for neighborCell in all(self:getNeighborCells(nil, cell)) do
+                if (neighborCell.threat or neighborCell.monster) then --is connected, do not drop
+                    isConnected = true
+                end
+            end
+            if (not isConnected) then
+                cell.monster.isDropped = true -- drop if cell is not connected to ceiling or populated cell
+                cell.monster = nil
+            end
+        end
+    end
 end
 
 function Grid:draw()
     for i = 1, #self.cells do
         local cell = self.cells[i]
-        if cell.active then
-            --            rectfill(cell.x, cell.y, cell.x + 8, cell.y + 8, 8) --debug
-        end
         --        spr(63, cell.x, cell.y)  --debug
     end
 
@@ -405,14 +432,10 @@ end
 
 function Grid:checkPosition(this, monster)
     local cell = self:findCellForMonster(monster)
-    for cell in all(self.cells) do
-        cell.active = false --debug: active cell marker
-    end
     if (cell) then --if monster inside valid cell
-        cell.active = true --debug: mark active cell
-        if (cell.monster or cell.threat) then
+        if (cell.monster or cell.threat) then -- next cell cannot be populated, populate last cell
             fitMonsterInsideCell(monster, monster.lastCell)
-            self:checkDrop(self, monster.lastCell)
+            self:dropMatchingCells(nil, monster.lastCell) -- mark isDropped when matching neighbors
         else
             monster.lastCell = cell --remember last cell of monster and continue travel
         end
@@ -420,7 +443,6 @@ function Grid:checkPosition(this, monster)
 end
 
 function fitMonsterInsideCell(monster, cell)
-    assert(monster and cell)
     cell.monster = monster --set monster cell
     monster.x = cell.x --align to cell
     monster.y = cell.y
@@ -435,30 +457,128 @@ function get(table, value)
             return i
         end
     end
+    return nil
 end
 
-function Grid:checkDrop(this, cell, chain)
-    local chain = chain or {cell}
+--returns if table conains given value
+function contains(table, value)
+    for v in all(table) do
+        if v == value then return true
+        end
+        return false
+    end
+end
 
-    for n in all(_neighbors) do
-        local cellI = get(self.cells, cell)
-        if not cellI then return end
+--checks if cell is a matching neighbor of candidate cell
+function Grid:isMatchingNeighbor(this, cell, candidate)
+    local matchingNeighbors = self:getMatchingNeighbors(nil, cell)
+    for matchingNeighbor in all(matchingNeighbors) do
+        if matchingNeighbor == candidate then return true
+        end
+    end
+    return false
+end
 
-        local neighborI = cellI + n
-        local neighborCell = self.cells[neighborI]
-        if (neighborCell and neighborCell.monster) then
-            if cell.monster.sprite == neighborCell.monster.sprite then
-                add(chain, neighborCell)
-                --                self:checkDrop(self, neighborCell, chain)
+--return all populated and matching neighbor cells
+function Grid:getMatchingNeighbors(this, cell)
+    assert(cell.monster)
+    local neighborCells = self:getPopulatedNeighborCells(nil, cell)
+    local matches = {}
+    for neighborCell in all(neighborCells) do
+        if neighborCell.monster.sprite == cell.monster.sprite then
+            add(matches, neighborCell)
+        end
+    end
+    return matches
+end
+
+--returns a table with all neighbor cells with a monster for  cell
+function Grid:getPopulatedNeighborCells(this, cell)
+    local neighborCells = self:getNeighborCells(nil, cell)
+    local populatedNeighborCells = {}
+    for neighborCell in all(neighborCells) do
+        if neighborCell.monster then
+            add(populatedNeighborCells, neighborCell)
+        end
+    end
+    return populatedNeighborCells
+end
+
+--returns alls neighbor cells
+function Grid:getNeighborCells(this, cell)
+    assert(cell)
+    local neighborCells = {}
+    for neighborIndex in all(_neighbors) do
+        local cellIndex = get(self.cells, cell)
+        if cellIndex then
+            local neighborIndex = cellIndex + neighborIndex
+            local neighborCell = self.cells[neighborIndex]
+            if neighborCell then
+                add(neighborCells, neighborCell)
             end
         end
     end
-    print(#chain, 14, 14, 7)
-    flip()
 
-    if #chain >= 3 then
-        for cell in all(chain) do
-            cell.monster.sprite = 16
+    return neighborCells
+end
+
+function Grid:dropMatchingCells(this, cell)
+    --    if cell.monster then
+    --        local i = (i or 0) + 1
+    --        assert(i < 100, 'iteration loop at ' .. i)
+    --        assert(cell)
+    --        local chain = chain or {}
+    --        add(chain, cell) -- add curent cell to chain
+    --
+    --        for neighborCell in all(self:getPopulatedNeighborCells(nil, cell)) do
+    --            if (not get(chain, neighborCell)) then --cell exists and not already in chain
+    --                assert(cell.monster)
+    --                assert(neighborCell and neighborCell.monster)
+    --                if cell.monster.sprite == neighborCell.monster.sprite then --if same monster type
+    --                    self:checkDrop(self, neighborCell, chain, i)
+    --                end
+    --            end
+    --        end
+    --
+    --        print(#chain, 14, 14, 7)
+    --        flip()
+    --
+    --        if #chain >= 3 then
+    --            for cell in all(chain) do
+    --                cell.monster.isDropped = true
+    --                cell.monster = nil
+    --            end
+    --        end
+    --    end
+
+    local matches = { cell }
+    repeat
+        local nuMatches = {}
+        for cell in all(self.cells) do
+            if not get(matches, cell) then --skip cells that are matches
+                if cell.monster then
+                    for match in all(matches) do
+                        if self:isMatchingNeighbor(nil, cell, match) then
+                            add(nuMatches, cell)
+                            break -- nuMatch found. Break comparing with existing matches to prevent duplicates and continue with next cell.
+                        end
+                    end
+                end
+            end
+        end
+
+        for nuMatch in all(nuMatches) do
+            --assert(get(matches, nuMatch), 'duplicate match found')
+            add(matches, nuMatch)
+        end
+    until #nuMatches == 0
+
+    --print(#matches,43,67,9)
+
+    if #matches >= 3 then
+        for cell in all(matches) do
+            cell.monster.isDropped = true
+            cell.monster = nil
         end
     end
 end
@@ -582,12 +702,12 @@ __gfx__
 0000000003b88b3003bbbb30028888200255552000188100001111007070700770070707221222222222222200988a00009aaa000dd22dd00d2222d000000000
 056666000566660000000000000000000077700076f7766404040050000000000000000000000000000000000000000000000000000000000000000000000000
 06666660066666600056500000499f0007ccc7000f77665540000904000000000000000000000000000000000000000000000000000000000000000000000000
-0669696006696960056f65000499aaf07ccccc700f77665004404550000000000000000000000000000000000000000000000000000000000000000000000000
-066666600666666006f7f6000499aaa000efe0000f77665090045000000000000000000000000000000000000000000000000000000000000000000000000000
+0665656006656560056f65000499aaf07ccccc700f77665004404550000000000000000000000000000000000000000000000000000000000000000000000000
+066060600660606006f7f6000499aaa000efe0000f77665090045000000000000000000000000000000000000000000000000000000000000000000000000000
 0666566006665660056f650004999a900defed000f77665004004404000000000000000000000000000000000000000000000000000000000000000000000000
-056666500566665000565000024999400defed000f77665000000040000000000000000000000000000000000000000000000000000000000000000000000000
-006556000065560000000000002494000d000d000f77665005400455000000000000000000000000000000000000000000000000000000000000000000000000
-00066000000660000000000000000000ddb0ddb00f77665000090040000000000000000000000000000000000000000000000000000000000000000000000000
+056606500566065000565000024999400defed000f77665000000040000000000000000000000000000000000000000000000000000000000000000000000000
+005666000056660000000000002494000d000d000f77665005400455000000000000000000000000000000000000000000000000000000000000000000000000
+00065600000656000000000000000000ddb0ddb00f77665000090040000000000000000000000000000000000000000000000000000000000000000000000000
 0000000055555555055500f666005550055505550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000550555055000f6cccc660005500050000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000055555555500fcc0000cc6005500050000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000

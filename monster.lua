@@ -1,4 +1,5 @@
 local _initSpeed = 2 --default flying speed
+
 local Monster = {
     x = -64,
     y = -64,
@@ -6,7 +7,8 @@ local Monster = {
     direction = nil,
     speed = 0,
     spriteCoolDown = rnd(40),
-    lastCell = nil
+    lastCell = nil,
+    isDropped = false
 }
 function Monster:new(obj, grid)
     assert(grid, 'monster requires grid instance')
@@ -19,9 +21,9 @@ function Monster:new(obj, grid)
 end
 
 function Monster:draw()
---    spr(self.alterSprite and self.sprite + 1 or self.sprite, self.x, self.y)
-    circ(self.x+4,self.y+4,4,self.sprite) --debug
-    circ(self.x+4,self.y+4,0,10) --debug
+    spr(self.alterSprite and self.sprite + 1 or self.sprite, self.x, self.y)
+    --    circ(self.x+4,self.y+4,4,self.sprite) --debug
+    --    circ(self.x+4,self.y+4,0,10) --debug
 end
 
 function Monster:animateFace()
@@ -36,18 +38,30 @@ function Monster:update()
 
     self:animateFace();
 
-    if (self.direction) then
+    if (self.direction and not self.isDropped) then --when flying
         self.speed = _initSpeed --enable flying
 
         if (self.x <= 0 or self.x >= 119) then
             self.direction = 1 - self.direction --bounce of walls
         end
 
-        self.x = self.x + sin(self.direction) * self.speed
-        self.y = self.y + cos(self.direction) * self.speed
-
-        self.grid:checkPosition(nil, self)
+       self.grid:checkPosition(nil, self) -- check collision and align monster to cell
     end
+
+    --  if (not self.direction) then  --when stopped and aligned inside cell
+    -- end
+
+    if (self.isDropped) then --fall down when dropped
+        --self.lastCell.monster = nil
+        self.speed = _initSpeed * 2
+        self.direction = 0
+    end
+
+
+    self.x = self.x + sin(self.direction) * self.speed
+    self.y = self.y + cos(self.direction) * self.speed
+
+    if self.y > 128 then del(globals.monsters, self) end --remove monster from memory
 end
 
 function Monster:setCoords(this, x, y)
