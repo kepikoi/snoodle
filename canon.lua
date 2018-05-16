@@ -17,16 +17,16 @@ end
 
 function Canon:draw()
     --    print(self.a, 64, 64, 13)
-
+local maxi = 10 -- max cannon segments
     -- draw canon circles
-    for i = 2, 4 do
+    for i = 2, maxi do
         local s = 18 -- sprite  nr
-        local m = 0 -- margin for last circle
-        if (i == 4) then
+        local m = 2 -- margin for each circle
+        if (i == maxi) then
             s = 19 -- last canon sprite
-            m = 0.5
+            m = 2.5 -- las circle margin
         end
-        spr(s, (5 + m) * i * (sin(self.rotation)) + self.x, (5 + m) * i * cos(self.rotation) + self.y)
+        spr(s,  m * i *  (sin(self.rotation)) + self.x, m * i * cos(self.rotation) + self.y)
     end
 
     --print(self.currentMonster, self.x, self.y, 14);
